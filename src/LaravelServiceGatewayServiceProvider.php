@@ -13,13 +13,14 @@ class LaravelServiceGatewayServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->extend('command.model.make', function ($command, Application $app) {
-            return new MakeModelExtendCommand;
+        $this->app->extend('command.model.make', function ($command, $app) {
+            return $app->make(MakeModelExtendCommand::class);
         });
 
         $this->commands([
             MakeServiceCommand::class,
-            MakeGatewayCommand::class
+            MakeGatewayCommand::class,
+            MakeModelExtendCommand::class,
         ]);
     }
 

@@ -15,7 +15,7 @@ To install the package, run the following command:
 composer require josesierradev/laravel-service-gateway
 ```
 
-## Usage
+## ⚙ Usage
 
 After installation, you can use the following Artisan commands:
 
@@ -39,16 +39,40 @@ This will create a gateway class in the app/Gateways directory.
 
 ### Create a Model, Service, and Gateway
 
-To generate a model along with its service and gateway, use the following command:
+
+
+You can use the extended `make:model` command as usual, but now with the following options:
+
+- `--service` or `-S`: Generate a Service class.
+- `--gateway` or `-g`: Generate a Gateway class.
+- `--sg` or `--gs`: Generate both Service and Gateway classes.
+
+These can be combined with standard model options like:
+
+- `-m`: Migration
+- `-c`: Controller
+- `-s`: Seeder
+- `-f`: Factory
+
+### Example
 
 ```bash
-php artisan make:model {ModelName} -s -g
+php artisan make:model Product -mcfs -Sg
 ```
+
 This will create:
+- The `Product` model
+- A migration file
+- A controller
+- A factory
+- A seeder
+- A service class: `App\Services\ProductService`
+- A gateway class: `App\Gateways\ProductGateway`
 
-- A model in the app/Models directory
+> ⚠ Note: If the model already exists, the service and gateway will not be created.
 
-- A service in the app/Services directory 
 
-- A gateway in the app/Gateways directory 
+
+Made with ❤️ by [JoseSierraDev](https://github.com/JoseSierraDev)
+
 

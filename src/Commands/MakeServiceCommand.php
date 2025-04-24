@@ -90,7 +90,7 @@ class MakeServiceCommand extends GeneratorCommand
     protected function getPath($name)
     {
         $name = Str::replaceFirst($this->rootNamespace(), '', $name);
-        return app_path(str_replace('\\', '/', $name) . '.php');
+        return app()->basePath('app/' . str_replace('\\', '/', $name) . '.php');
     }
 
     /**
@@ -120,7 +120,7 @@ class MakeServiceCommand extends GeneratorCommand
         $result = parent::handle();
 
         if ($result !== false) {
-            $this->info('✔ Service created successfully.');
+
         }
 
         return $result;

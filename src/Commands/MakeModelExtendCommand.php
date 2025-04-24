@@ -2,65 +2,65 @@
 
 namespace LaravelServiceGateway\Commands;
 
-use Illuminate\Foundation\Console\ModelMakeCommand;
+use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 
-class MakeModelExtendCommand extends ModelMakeCommand
+class MakeModelExtendCommand extends \Illuminate\Foundation\Console\ModelMakeCommand
 {
-    /**
-     * El nombre del comando.
-     *
-     * @var string
-     */
-    protected $name = 'make:model';
+    protected function configure()
+    {
+        parent::configure();
 
-    /**
-     * Ejecuta el comando.
-     */
+        $this->getDefinition()->addOptions([
+            new InputOption('service', 'S', InputOption::VALUE_NONE, 'Create a new Service class for the model'),
+            new InputOption('gateway', 'g', InputOption::VALUE_NONE, 'Create a new Gateway class for the model'),
+            new InputOption('sg', null, InputOption::VALUE_NONE, 'Create both Service and Gateway classes for the model'),
+            new InputOption('gs', null, InputOption::VALUE_NONE, 'Create both Service and Gateway classes for the model'),
+        ]);
+    }
+
     public function handle()
     {
+        $name = $this->qualifyClass($this->getNameInput());
+        $path = $this->getPath($name);
+        $exist = file_exists($path);
+
         parent::handle();
 
-        $name = $this->qualifyClass($this->getNameInput());
+        if (!$exist) {
+            $createService = false;
+            $createGateway = false;
 
-        if ($this->option('service')) {
-            $this->call('make:service', [
-                'name' => $this->resolveLayerName($name, 'Service'),
-            ]);
-            $this->components->info('Service created successfully.');
-        }
+            if ($this->option('sg') || $this->option('gs')) {
+                $createService = true;
+                $createGateway = true;
+            } else {
+                $createService = $this->option('service');
+                $createGateway = $this->option('gateway');
+            }
 
-        if ($this->option('gateway')) {
-            $this->call('make:gateway', [
-                'name' => $this->resolveLayerName($name, 'Gateway'),
-            ]);
-            $this->components->info('Gateway created successfully.');
+            if ($createService) {
+                $this->call('make:service', [
+                    'name' => $this->resolveLayerName($name, 'Service'),
+                ]);
+            }
+
+            if ($createGateway) {
+                $this->call('make:gateway', [
+                    'name' => $this->resolveLayerName($name, 'Gateway'),
+                ]);
+            }
         }
     }
 
-    /**
-     * Resuelve el nombre del Service o Gateway basado en el modelo.
-     */
-    protected function resolveLayerName(string $modelName, string $type): string
-    {
-        $baseName = class_basename($modelName);
-        $namespace = Str::replaceFirst($this->laravel->getNamespace(), '', $modelName);
-        $folder = str_replace('\\' . $baseName, '', $namespace);
 
-        return ($folder ? $folder . '/' : '') . $baseName . $type;
-    }
-
-    /**
-     * Agrega las opciones de línea de comandos.
-     *
-     * @return array
-     */
-    protected function getOptions()
+    protected function resolveLayerName($name, $suffix)
     {
-        return array_merge(parent::getOptions(), [
-            ['service', '-serv', InputOption::VALUE_NONE, 'Create a new Service class for the model.'],
-            ['gateway', 'g', InputOption::VALUE_NONE, 'Create a new Gateway class for the model.'],
-        ]);
+        $class = class_basename($name);
+        $namespace = Str::of($name)->beforeLast('\\')->after(app()->getNamespace());
+
+        return (string) $namespace->finish('\\') . $class . $suffix;
     }
 }

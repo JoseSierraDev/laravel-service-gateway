@@ -2,147 +2,65 @@
 
 namespace LaravelServiceGateway\Commands;
 
-use Illuminate\Console\GeneratorCommand;
+use Illuminate\Foundation\Console\ModelMakeCommand;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use function LaravelServiceGateway\Console\Commands\app_path;
 
-class MakeModelExtendCommand extends GeneratorCommand
+class MakeModelExtendCommand extends ModelMakeCommand
 {
     /**
-     * The console command name.
+     * El nombre del comando.
      *
      * @var string
      */
     protected $name = 'make:model';
 
     /**
-     * The console command description.
-     *
-     * @var string
+     * Ejecuta el comando.
      */
-    protected $description = 'Create a new Model class along with Service and Gateway classes (optional)';
-
-    /**
-     * The type of class being generated.
-     *
-     * @var string
-     */
-    protected $type = 'Model';
-
-    /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
-    protected function getStub()
+    public function handle()
     {
-        return __DIR__ . '/../../stubs/model.stub';
+        parent::handle();
+
+        $name = $this->qualifyClass($this->getNameInput());
+
+        if ($this->option('service')) {
+            $this->call('make:service', [
+                'name' => $this->resolveLayerName($name, 'Service'),
+            ]);
+            $this->components->info('Service created successfully.');
+        }
+
+        if ($this->option('gateway')) {
+            $this->call('make:gateway', [
+                'name' => $this->resolveLayerName($name, 'Gateway'),
+            ]);
+            $this->components->info('Gateway created successfully.');
+        }
     }
 
     /**
-     * Get the default namespace for the class.
-     *
-     * @param  string  $rootNamespace
-     * @return string
+     * Resuelve el nombre del Service o Gateway basado en el modelo.
      */
-    protected function getDefaultNamespace($rootNamespace)
+    protected function resolveLayerName(string $modelName, string $type): string
     {
-        return $rootNamespace . '\\Models';
+        $baseName = class_basename($modelName);
+        $namespace = Str::replaceFirst($this->laravel->getNamespace(), '', $modelName);
+        $folder = str_replace('\\' . $baseName, '', $namespace);
+
+        return ($folder ? $folder . '/' : '') . $baseName . $type;
     }
 
     /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return [
-            ['name', InputArgument::REQUIRED, 'The name of the model class.'],
-        ];
-    }
-
-    /**
-     * Get the console command options.
+     * Agrega las opciones de línea de comandos.
      *
      * @return array
      */
     protected function getOptions()
     {
-        return [
-            ['service', 's', InputOption::VALUE_NONE, 'Generate a Service class for the model'],
-            ['gateway', 'g', InputOption::VALUE_NONE, 'Generate a Gateway class for the model'],
-        ];
-    }
-
-    /**
-     * Qualify the class name.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function qualifyClass($name)
-    {
-        $name = ltrim($name, '\\');
-
-        $rootNamespace = $this->rootNamespace();
-        if (Str::startsWith($name, $rootNamespace)) {
-            $name = Str::replaceFirst($rootNamespace, '', $name);
-        }
-
-        return $this->getDefaultNamespace(trim($rootNamespace, '\\')) . '\\' . str_replace('/', '\\', $name);
-    }
-
-    /**
-     * Get the destination class path.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function getPath($name)
-    {
-        $name = Str::replaceFirst($this->rootNamespace(), '', $name);
-        return app_path(str_replace('\\', '/', $name) . '.php');
-    }
-
-    /**
-     * Build the class with the given name.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function buildClass($name)
-    {
-        $stub = file_get_contents($this->getStub());
-
-        return str_replace(
-            ['DummyNamespace', 'DummyClass'],
-            [$this->getNamespace($name), class_basename($name)],
-            $stub
-        );
-    }
-
-    /**
-     * Execute the console command.
-     *
-     * @return bool|null
-     */
-    public function handle()
-    {
-        // First, generate the model class using the default make:model functionality
-        parent::handle();
-
-        // Optionally, create Service and Gateway if the corresponding flags are provided
-        if ($this->option('service')) {
-            $this->call('make:service', ['name' => $this->argument('name')]);
-            $this->info('✔ Service created successfully.');
-        }
-
-        if ($this->option('gateway')) {
-            $this->call('make:gateway', ['name' => $this->argument('name')]);
-            $this->info('✔ Gateway created successfully.');
-        }
+        return array_merge(parent::getOptions(), [
+            ['service', '-serv', InputOption::VALUE_NONE, 'Create a new Service class for the model.'],
+            ['gateway', 'g', InputOption::VALUE_NONE, 'Create a new Gateway class for the model.'],
+        ]);
     }
 }

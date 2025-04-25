@@ -1,0 +1,15 @@
+<?php
+
+namespace {{ namespace }};
+
+use LaravelServiceGateway\Validators\BaseValidator;
+
+class {{ class }} extends BaseValidator
+{
+    public static function rules(): array
+    {
+        return [
+            {{ rules }}
+        ];
+    }
+}

@@ -7,6 +7,7 @@ use LaravelServiceGateway\Commands\MakeGatewayCommand;
 use LaravelServiceGateway\Commands\MakeModelExtendCommand;
 use LaravelServiceGateway\Commands\MakeServiceCommand;
 use Illuminate\Foundation\Application;
+use LaravelServiceGateway\Commands\MakeValidatorCommand;
 
 
 class LaravelServiceGatewayServiceProvider extends ServiceProvider
@@ -21,6 +22,7 @@ class LaravelServiceGatewayServiceProvider extends ServiceProvider
             MakeServiceCommand::class,
             MakeGatewayCommand::class,
             MakeModelExtendCommand::class,
+            MakeValidatorCommand::class
         ]);
     }
 

@@ -12,7 +12,7 @@ abstract class BaseValidator
      *
      * @return array
      */
-    abstract public static function rules(): array;
+    abstract public static function rules($data=[]): array;
 
     /**
      * Validates the given data using the defined rules.
@@ -24,7 +24,7 @@ abstract class BaseValidator
      */
     public static function validate(array $data): array
     {
-        $rules = call_user_func([static::class, 'rules']);
+        $rules = call_user_func([static::class, 'rules'],$data);
         $validator = Validator::make($data, $rules);
 
         if ($validator->fails()) {
